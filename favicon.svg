@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="32" fill="#1a1a2e"/>
+  <path d="M40 130 L40 100 L80 60 L112 60 L152 100 L152 130" stroke="#00d4ff" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="80" cy="60" r="6" fill="#00d4ff"/>
+  <circle cx="112" cy="60" r="6" fill="#00d4ff"/>
+  <text x="96" y="155" text-anchor="middle" fill="#888" font-size="18" font-family="sans-serif">УТКА</text>
+</svg>

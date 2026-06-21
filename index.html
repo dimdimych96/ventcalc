@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Калькулятор уток вентиляции</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 0;
+      overflow-x: hidden;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px 0 10px;
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      color: #00d4ff;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    header p {
+      font-size: 0.8rem;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin: 16px 0;
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 4px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: transparent;
+      color: #888;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: rgba(0, 212, 255, 0.15);
+      color: #00d4ff;
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      font-size: 1rem;
+      color: #00d4ff;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.8rem;
+      color: #aaa;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .field input:focus, .field select:focus {
+      border-color: #00d4ff;
+    }
+
+    .field select option { background: #1a1a2e; color: #fff; }
+
+    .field .unit {
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .result-box {
+      background: linear-gradient(135deg, rgba(0,212,255,0.1), rgba(0,180,220,0.05));
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 14px;
+      padding: 18px;
+      margin-top: 8px;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .result-row:last-child { border-bottom: none; }
+
+    .result-label {
+      font-size: 0.85rem;
+      color: #aaa;
+    }
+
+    .result-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #00d4ff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .result-value.big {
+      font-size: 1.5rem;
+      color: #fff;
+    }
+
+    .warning {
+      background: rgba(255, 193, 7, 0.1);
+      border: 1px solid rgba(255, 193, 7, 0.2);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 12px;
+      font-size: 0.78rem;
+      color: #ffc107;
+      line-height: 1.5;
+    }
+
+    .warning::before { content: "⚠ "; }
+
+    /* Quick offsets grid */
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .quick-btn {
+      padding: 14px 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .quick-btn:active {
+      background: rgba(0,212,255,0.15);
+      border-color: #00d4ff;
+      transform: scale(0.96);
+    }
+
+    .quick-btn small {
+      display: block;
+      font-size: 0.65rem;
+      color: #888;
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    /* Coefficient table */
+    .coeff-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .coeff-table th {
+      text-align: left;
+      font-size: 0.75rem;
+      color: #888;
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      font-weight: 600;
+    }
+
+    .coeff-table td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.9rem;
+    }
+
+    .coeff-table td:first-child {
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .coeff-table td:last-child {
+      color: #00d4ff;
+      font-weight: 700;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .coeff-table tr.highlight {
+      background: rgba(0,212,255,0.08);
+    }
+
+    /* Diagram */
+    .diagram {
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .diagram svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Info section */
+    .info-block {
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      line-height: 1.6;
+      font-size: 0.85rem;
+      color: #bbb;
+    }
+
+    .info-block h3 {
+      color: #fff;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+
+    .info-block code {
+      background: rgba(0,212,255,0.1);
+      color: #00d4ff;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    /* Offset preset chips */
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      padding: 8px 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      color: #ccc;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chip:active, .chip.active {
+      background: rgba(0,212,255,0.15);
+      border-color: #00d4ff;
+      color: #00d4ff;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 20px 0;
+      font-size: 0.7rem;
+      color: #555;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Калькулятор уток</h1>
+      <p>Монтаж воздуховодов</p>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="calc">Калькулятор</button>
+      <button class="tab" data-tab="quick">Шпаргалка</button>
+      <button class="tab" data-tab="info">Справка</button>
+    </div>
+
+    <!-- CALCULATOR TAB -->
+    <div class="panel active" id="panel-calc">
+      <div class="card">
+        <h2>Параметры</h2>
+        <div class="field">
+          <label>Необходимое смещение (S)</label>
+          <input type="number" id="offset" placeholder="200" min="1" step="1">
+          <div class="unit">мм</div>
+        </div>
+        <div class="field">
+          <label>Угол полуотводов</label>
+          <select id="angle">
+            <option value="15">15° (K = 3.86)</option>
+            <option value="30">30° (K = 2.00)</option>
+            <option value="45" selected>45° (K = 1.41)</option>
+            <option value="60">60° (K = 1.15)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Диаметр трубопровода</label>
+          <select id="diameter">
+            <option value="100">100 мм</option>
+            <option value="125">125 мм</option>
+            <option value="150">150 мм</option>
+            <option value="160">160 мм</option>
+            <option value="200" selected>200 мм</option>
+            <option value="250">250 мм</option>
+            <option value="315">315 мм</option>
+            <option value="355">355 мм</option>
+            <option value="400">400 мм</option>
+            <option value="500">500 мм</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Длина полуотвода (вылет по оси)</label>
+          <input type="number" id="elbowLength" placeholder="120" min="0" step="1">
+          <div class="unit">мм — если не знаете, оставьте пустым (расчёт по формуле)</div>
+        </div>
+        <div class="field">
+          <label>Припуск на соединение (нахлёст с каждой стороны)</label>
+          <input type="number" id="overlap" placeholder="50" min="0" step="1" value="50">
+          <div class="unit">мм на сторону</div>
+        </div>
+      </div>
+
+      <div class="card" id="resultCard" style="display:none;">
+        <h2>Результат</h2>
+        <div class="result-box">
+          <div class="result-row">
+            <span class="result-label">Осевая длина (L)</span>
+            <span class="result-value big" id="res-axial">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Длина реза патрубка</span>
+            <span class="result-value" id="res-cut">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Коэффициент K</span>
+            <span class="result-value" id="res-k">—</span>
+          </div>
+        </div>
+
+        <div class="diagram" id="diagram"></div>
+
+        <div class="warning" id="res-note"></div>
+      </div>
+    </div>
+
+    <!-- QUICK TABLE TAB -->
+    <div class="panel" id="panel-quick">
+      <div class="card">
+        <h2>Таблица коэффициентов</h2>
+        <table class="coeff-table">
+          <thead><tr><th>Угол полуотвода</th><th style="text-align:right">K</th></tr></thead>
+          <tbody>
+            <tr data-angle="15"><td>15°</td><td>3.86</td></tr>
+            <tr data-angle="30"><td>30°</td><td>2.00</td></tr>
+            <tr data-angle="45" class="highlight"><td>45°</td><td>1.41</td></tr>
+            <tr data-angle="60"><td>60°</td><td>1.15</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>Готовые значения — 45°</h2>
+        <div class="quick-grid">
+          <div class="quick-btn" onclick="useQuick(50)">50<small>70 мм</small></div>
+          <div class="quick-btn" onclick="useQuick(100)">100<small>141 мм</small></div>
+          <div class="quick-btn" onclick="useQuick(150)">150<small>212 мм</small></div>
+          <div class="quick-btn" onclick="useQuick(200)">200<small>282 мм</small></div>
+          <div class="quick-btn" onclick="useQuick(250)">250<small>353 мм</small></div>
+          <div class="quick-btn" onclick="useQuick(300)">300<small>424 мм</small></div>
+          <div class="quick-btn" onclick="useQuick(350)">350<small>494 мм</small></div>
+          <div class="quick-btn" onclick="useQuick(400)">400<small>564 мм</small></div>
+          <div class="quick-btn" onclick="useQuick(500)">500<small>705 мм</small></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Стандартные смещения по углам</h2>
+        <div style="overflow-x:auto;">
+          <table class="coeff-table" id="allAnglesTable">
+            <thead>
+              <tr><th>S, мм</th><th>15°</th><th>30°</th><th>45°</th><th>60°</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFO TAB -->
+    <div class="panel" id="panel-info">
+      <div class="info-block">
+        <h3>Как пользоваться</h3>
+        <p>1. Введите нужное смещение воздуховода (расстояние, на которое нужно обойти препятствие).</p>
+        <p>2. Выберите угол полуотводов (чаще всего 45°).</p>
+        <p>3. Укажите диаметр труб и длину полуотвода.</p>
+        <p>4. Приложение покажет точную длину патрубка для реза.</p>
+      </div>
+
+      <div class="info-block">
+        <h3>Формула расчёта</h3>
+        <p>Осевая длина: <code>L = S × K</code></p>
+        <p>Где S — смещение, K — коэффициент угла.</p>
+        <p>Длина реза: <code>L_cut = L − 2×вылет + 2×нахлёст</code></p>
+      </div>
+
+      <div class="info-block">
+        <h3>Как определить вылет полуотвода</h3>
+        <p>Приложите два полуотвода друг к другу «уткой» и замерьте общее смещение без патрубка. Разделите на 2 — это вылет одного полуотвода.</p>
+        <p>Если не знаете вылет — оставьте поле пустым. Расчёт покажет осевую длину без учёта вылетов.</p>
+      </div>
+
+      <div class="info-block">
+        <h3>Нахлёст (ниппель)</h3>
+        <p>Для ниппельного соединения стандартный заход — 30–50 мм с каждой стороны. Для зигованного — зависит от глубины зига (обычно 15–25 мм).</p>
+      </div>
+
+      <div class="info-block">
+        <h3>Пример</h3>
+        <p>Смещение 200 мм, угол 45°, вылет полуотвода 120 мм, нахлёст 50 мм.</p>
+        <p><code>L = 200 × 1.41 = 282 мм</code></p>
+        <p><code>L_cut = 282 − 2×120 + 2×50 = 262 мм</code></p>
+      </div>
+    </div>
+
+    <footer>Утка-калькулятор v1.0</footer>
+  </div>
+
+  <script>
+    const COEFF = { 15: 3.86, 30: 2.00, 45: 1.41, 60: 1.15 };
+
+    const $ = id => document.getElementById(id);
+
+    // Tabs
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        $('panel-' + tab.dataset.tab).classList.add('active');
+      });
+    });
+
+    // Quick offset from table
+    function useQuick(val) {
+      $('offset').value = val;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelector('[data-tab="calc"]').classList.add('active');
+      $('panel-calc').classList.add('active');
+      calculate();
+    }
+
+    // Calculate
+    function calculate() {
+      const S = parseFloat($('offset').value);
+      const angle = parseInt($('angle').value);
+      const K = COEFF[angle];
+      const D = parseFloat($('diameter').value);
+      const elbowLen = parseFloat($('elbowLength').value) || 0;
+      const overlap = parseFloat($('overlap').value) || 0;
+
+      if (!S || S <= 0) {
+        $('resultCard').style.display = 'none';
+        return;
+      }
+
+      const axialL = S * K;
+      const cutLen = axialL - (elbowLen > 0 ? 2 * elbowLen : 0) + 2 * overlap;
+
+      $('res-axial').textContent = Math.round(axialL) + ' мм';
+      $('res-k').textContent = K;
+      $('resultCard').style.display = 'block';
+
+      if (elbowLen > 0) {
+        $('res-cut').textContent = Math.round(cutLen) + ' мм';
+        $('res-note').textContent =
+          'Длина реза с учётом вылета (' + elbowLen + ' мм) и нахлёста (' + overlap + ' мм с каждой стороны).';
+      } else {
+        $('res-cut').textContent = '—';
+        $('res-note').textContent =
+          'Укажите длину полуотвода для точного расчёта длины реза. Пока показана осевая длина L = S × K.';
+      }
+
+      drawDiagram(axialL, S, D, angle, elbowLen, overlap);
+    }
+
+    // Draw SVG diagram
+    function drawDiagram(L, S, D, angle, elbow, overlap) {
+      const w = 300, h = 160;
+      const pad = 20;
+
+      // Scale
+      const maxDim = Math.max(L, S, D);
+      const scale = (w - 2 * pad - 40) / maxDim;
+
+      const sScaled = S * scale;
+      const lScaled = L * scale;
+      const dScaled = D * scale;
+
+      const startX = pad + 20;
+      const startY = pad + 20;
+
+      // Duct goes horizontal → elbow up at angle → straight offset pipe → elbow back → horizontal
+      // Simplified side view of offset
+
+      const segLen = lScaled * 0.3;
+
+      let svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
+
+      // First duct (horizontal)
+      svg += `<line x1="${startX}" y1="${startY + 30}" x2="${startX + segLen}" y2="${startY + 30}" stroke="#555" stroke-width="3"/>`;
+
+      // First elbow (going up-right)
+      const x1 = startX + segLen;
+      const y1 = startY + 30;
+      const x2 = x1 + segLen * Math.cos((90 - angle) * Math.PI / 180) * 0.7;
+      const y2 = y1 - sScaled * 0.5;
+      svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#00d4ff" stroke-width="3"/>`;
+
+      // Offset pipe
+      const x3 = x2 + segLen;
+      const y3 = y2 - sScaled * 0.5;
+      svg += `<line x1="${x2}" y1="${y2}" x2="${x3}" y2="${y3}" stroke="#00d4ff" stroke-width="3"/>`;
+
+      // Second elbow
+      const x4 = x3 + segLen * Math.cos((90 - angle) * Math.PI / 180) * 0.7;
+      const y4 = y3 + sScaled * 0.5;
+      svg += `<line x1="${x3}" y1="${y3}" x2="${x4}" y2="${y4}" stroke="#00d4ff" stroke-width="3"/>`;
+
+      // Second duct
+      svg += `<line x1="${x4}" y1="${y4}" x2="${x4 + segLen}" y2="${y4}" stroke="#555" stroke-width="3"/>`;
+
+      // Dimension lines
+      const dimY1 = y1;
+      const dimY2 = y4;
+      const midX = (x2 + x3) / 2;
+
+      // Offset dimension
+      svg += `<line x1="${x1 + 10}" y1="${dimY1}" x2="${x1 + 10}" y2="${dimY2}" stroke="#ffc107" stroke-width="1" stroke-dasharray="3,3"/>`;
+      svg += `<text x="${x1 + 15}" y="${(dimY1 + dimY2) / 2}" fill="#ffc107" font-size="11" dominant-baseline="middle">${S}</text>`;
+
+      // L dimension
+      const dimLineY = Math.max(dimY1, dimY2) + 20;
+      svg += `<line x1="${x1}" y1="${dimLineY}" x2="${x4}" y2="${dimLineY}" stroke="#00d4ff" stroke-width="1" stroke-dasharray="3,3"/>`;
+      svg += `<text x="${(x1 + x4) / 2 - 10}" y="${dimLineY + 14}" fill="#00d4ff" font-size="11">L = ${Math.round(L)}</text>`;
+
+      // Angle arc
+      svg += `<text x="${x1 - 5}" y="${y1 - 10}" fill="#888" font-size="10">${angle}°</text>`;
+
+      svg += '</svg>';
+      $('diagram').innerHTML = svg;
+    }
+
+    // Fill all-angles table
+    function fillTable() {
+      const offsets = [50, 100, 150, 200, 250, 300, 400, 500];
+      const tbody = document.querySelector('#allAnglesTable tbody');
+      let html = '';
+      offsets.forEach(s => {
+        html += `<tr>
+          <td style="font-weight:600;color:#fff">${s}</td>
+          <td>${Math.round(s * COEFF[15])}</td>
+          <td>${Math.round(s * COEFF[30])}</td>
+          <td>${Math.round(s * COEFF[45])}</td>
+          <td>${Math.round(s * COEFF[60])}</td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    }
+
+    // Bind inputs
+    ['offset', 'angle', 'diameter', 'elbowLength', 'overlap'].forEach(id => {
+      $(id).addEventListener('input', calculate);
+      $(id).addEventListener('change', calculate);
+    });
+
+    fillTable();
+
+    // Auto-calc on load if offset present
+    if ($('offset').value) calculate();
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
