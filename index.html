@@ -379,8 +379,8 @@
         </div>
         <div class="field">
           <label>Припуск на соединение (нахлёст с каждой стороны)</label>
-          <input type="number" id="overlap" placeholder="50" min="0" step="1" value="50">
-          <div class="unit">мм на сторону</div>
+          <input type="number" id="overlap" placeholder="0" min="0" step="1" value="0">
+          <div class="unit">мм на сторону — сколько трубы заходит внутрь фитинга</div>
         </div>
       </div>
 
@@ -548,7 +548,7 @@
 
       const axialL = S * K;
       const extension = S / Math.sin(angle * Math.PI / 180);
-      const cutLen = axialL - (elbowLen > 0 ? 2 * elbowLen : 0) + 2 * overlap;
+      const cutLen = axialL - 2 * elbowLen - 2 * overlap;
 
       $('res-axial').textContent = Math.round(axialL) + ' мм';
       $('res-extension').textContent = Math.round(extension) + ' мм';
@@ -558,11 +558,11 @@
       if (elbowLen > 0) {
         $('res-cut').textContent = Math.round(cutLen) + ' мм';
         $('res-note').textContent =
-          'Длина реза патрубка с учётом вылета (' + elbowLen + ' мм) и нахлёста (' + overlap + ' мм с каждой стороны).';
+          'Длина реза: CC − вылеты' + (overlap > 0 ? ' − нахлёст' : '') + '.';
       } else {
         $('res-cut').textContent = '—';
         $('res-note').textContent =
-          'Укажите длину полуотвода для точного расчёта. Пока: осевая = ' + Math.round(axialL) + ' мм, растяжка = ' + Math.round(extension) + ' мм.';
+          'Укажите вылет полуотвода для расчёта длины реза.';
       }
 
       drawDiagram(axialL, S, extension, D, angle, elbowLen, overlap);
