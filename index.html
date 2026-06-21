@@ -353,8 +353,8 @@
           <select id="angle">
             <option value="15">15° (K = 3.86)</option>
             <option value="30">30° (K = 2.00)</option>
-            <option value="45" selected>45° (K = 1.41)</option>
-            <option value="60">60° (K = 1.15)</option>
+            <option value="45" selected>45° (K = 1.414)</option>
+            <option value="60">60° (K = 1.155)</option>
           </select>
         </div>
         <div class="field">
@@ -373,9 +373,9 @@
           </select>
         </div>
         <div class="field">
-          <label>Длина полуотвода (вылет по оси)</label>
-          <input type="number" id="elbowLength" placeholder="120" min="0" step="1">
-          <div class="unit">мм — если не знаете, оставьте пустым (расчёт по формуле)</div>
+          <label>Вылет полуотвода (от центра до отбортовки)</label>
+          <input type="number" id="elbowLength" placeholder="75" min="0" step="1">
+          <div class="unit">мм — замерьте от центра трубы до края отбортовки</div>
         </div>
         <div class="field">
           <label>Припуск на соединение (нахлёст с каждой стороны)</label>
@@ -420,8 +420,8 @@
           <tbody>
             <tr data-angle="15"><td>15°</td><td>3.86</td></tr>
             <tr data-angle="30"><td>30°</td><td>2.00</td></tr>
-            <tr data-angle="45" class="highlight"><td>45°</td><td>1.41</td></tr>
-            <tr data-angle="60"><td>60°</td><td>1.15</td></tr>
+            <tr data-angle="45" class="highlight"><td>45°</td><td>1.414</td></tr>
+            <tr data-angle="60"><td>60°</td><td>1.155</td></tr>
           </tbody>
         </table>
       </div>
@@ -486,11 +486,21 @@
       </div>
 
       <div class="info-block">
-        <h3>Пример</h3>
-        <p>Смещение 200 мм, угол 45°, вылет полуотвода 120 мм, нахлёст 50 мм.</p>
-        <p><code>CC = 200 × 1.41 = 282 мм</code></p>
-        <p><code>E = 200 / sin(45°) = 283 мм</code></p>
-        <p><code>L = 282 − 2×120 + 2×50 = 262 мм</code></p>
+        <h3>Метод квадрата (для 45°)</h3>
+        <p>При угле 45° смещение по оси и по прямой равны → получается квадрат.</p>
+        <p>1. Нарисуйте квадрат со стороной S</p>
+        <p>2. Проведите диагональ → это осевая длина CC</p>
+        <p>3. Вычтите вылет полуотвода с каждой стороны → длина реза</p>
+        <p><code>CC = S × √2 ≈ S × 1.41</code></p>
+        <p><code>L = CC − 2×вылет</code></p>
+      </div>
+
+      <div class="info-block">
+        <h3>Пример (метод квадрата)</h3>
+        <p>Смещение 685 мм, угол 45°, вылет 75 мм.</p>
+        <p><code>CC = 685 × 1.41 = 966 мм</code></p>
+        <p><code>L = 966 − 2×75 = 816 мм</code></p>
+        <p>На видео получается 820 мм — разница 4 мм из-за округления √2.</p>
       </div>
     </div>
 
@@ -498,7 +508,7 @@
   </div>
 
   <script>
-    const COEFF = { 15: 3.86, 30: 2.00, 45: 1.41, 60: 1.15 };
+    const COEFF = { 15: 3.86, 30: 2.00, 45: 1.4142, 60: 1.1547 };
 
     const $ = id => document.getElementById(id);
 
