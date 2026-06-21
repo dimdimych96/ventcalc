@@ -464,6 +464,7 @@
         <p><strong>CC</strong> (ось по центрам): <code>CC = S × K</code>, где K = 1/sin(α)</p>
         <p><strong>E</strong> (растяжка): <code>E = S / sin(α)</code> — горизонтальное расстояние утки</p>
         <p><strong>L</strong> (длина реза): <code>L = CC − 2×вылет + 2×нахлёст</code></p>
+        <p style="color:#888;font-size:0.75rem;">Нахлёст прибавляется — труба заходит в фитинг и удлиняет конструкцию</p>
       </div>
 
       <div class="info-block">
@@ -497,10 +498,10 @@
 
       <div class="info-block">
         <h3>Пример (метод квадрата)</h3>
-        <p>Смещение 685 мм, угол 45°, вылет 75 мм.</p>
-        <p><code>CC = 685 × 1.41 = 966 мм</code></p>
-        <p><code>L = 966 − 2×75 = 816 мм</code></p>
-        <p>На видео получается 820 мм — разница 4 мм из-за округления √2.</p>
+        <p>Смещение 685 мм, угол 45°, вылет 75 мм, нахлёст 0 мм.</p>
+        <p><code>CC = 685 × 1.414 = 969 мм</code></p>
+        <p><code>L = 969 − 2×75 + 0 = 819 мм</code></p>
+        <p>С нахлёстом 50 мм: <code>L = 969 − 150 + 100 = 919 мм</code></p>
       </div>
     </div>
 
@@ -548,7 +549,7 @@
 
       const axialL = S * K;
       const extension = S / Math.sin(angle * Math.PI / 180);
-      const cutLen = axialL - 2 * elbowLen - 2 * overlap;
+      const cutLen = axialL - 2 * elbowLen + 2 * overlap;
 
       $('res-axial').textContent = Math.round(axialL) + ' мм';
       $('res-extension').textContent = Math.round(extension) + ' мм';
@@ -558,7 +559,7 @@
       if (elbowLen > 0) {
         $('res-cut').textContent = Math.round(cutLen) + ' мм';
         $('res-note').textContent =
-          'Длина реза: CC − вылеты' + (overlap > 0 ? ' − нахлёст' : '') + '.';
+          'Длина реза: CC − вылеты' + (overlap > 0 ? ' + нахлёст (' + overlap + ' мм с каждой стороны)' : '') + '.';
       } else {
         $('res-cut').textContent = '—';
         $('res-note').textContent =
