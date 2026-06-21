@@ -388,12 +388,16 @@
         <h2>Результат</h2>
         <div class="result-box">
           <div class="result-row">
-            <span class="result-label">Осевая длина (L)</span>
-            <span class="result-value big" id="res-axial">—</span>
+            <span class="result-label">Длина патрубка (L)</span>
+            <span class="result-value big" id="res-cut">—</span>
           </div>
           <div class="result-row">
-            <span class="result-label">Длина реза патрубка</span>
-            <span class="result-value" id="res-cut">—</span>
+            <span class="result-label">Осевая длина (CC)</span>
+            <span class="result-value" id="res-axial">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Растяжка (E)</span>
+            <span class="result-value" id="res-extension">—</span>
           </div>
           <div class="result-row">
             <span class="result-label">Коэффициент K</span>
@@ -424,16 +428,11 @@
 
       <div class="card">
         <h2>Готовые значения — 45°</h2>
-        <div class="quick-grid">
-          <div class="quick-btn" onclick="useQuick(50)">50<small>70 мм</small></div>
-          <div class="quick-btn" onclick="useQuick(100)">100<small>141 мм</small></div>
-          <div class="quick-btn" onclick="useQuick(150)">150<small>212 мм</small></div>
-          <div class="quick-btn" onclick="useQuick(200)">200<small>282 мм</small></div>
-          <div class="quick-btn" onclick="useQuick(250)">250<small>353 мм</small></div>
-          <div class="quick-btn" onclick="useQuick(300)">300<small>424 мм</small></div>
-          <div class="quick-btn" onclick="useQuick(350)">350<small>494 мм</small></div>
-          <div class="quick-btn" onclick="useQuick(400)">400<small>564 мм</small></div>
-          <div class="quick-btn" onclick="useQuick(500)">500<small>705 мм</small></div>
+        <div style="overflow-x:auto;">
+          <table class="coeff-table">
+            <thead><tr><th>S, мм</th><th>CC (L), мм</th><th>E, мм</th></tr></thead>
+            <tbody id="quick45"></tbody>
+          </table>
         </div>
       </div>
 
@@ -442,7 +441,7 @@
         <div style="overflow-x:auto;">
           <table class="coeff-table" id="allAnglesTable">
             <thead>
-              <tr><th>S, мм</th><th>15°</th><th>30°</th><th>45°</th><th>60°</th></tr>
+              <tr><th>S, мм</th><th>15°<br><small>CC / E</small></th><th>30°<br><small>CC / E</small></th><th>45°<br><small>CC / E</small></th><th>60°<br><small>CC / E</small></th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -461,10 +460,18 @@
       </div>
 
       <div class="info-block">
-        <h3>Формула расчёта</h3>
-        <p>Осевая длина: <code>L = S × K</code></p>
-        <p>Где S — смещение, K — коэффициент угла.</p>
-        <p>Длина реза: <code>L_cut = L − 2×вылет + 2×нахлёст</code></p>
+        <h3>Формулы расчёта</h3>
+        <p><strong>CC</strong> (ось по центрам): <code>CC = S × K</code>, где K = 1/sin(α)</p>
+        <p><strong>E</strong> (растяжка): <code>E = S / sin(α)</code> — горизонтальное расстояние утки</p>
+        <p><strong>L</strong> (длина реза): <code>L = CC − 2×вылет + 2×нахлёст</code></p>
+      </div>
+
+      <div class="info-block">
+        <h3>Что означают параметры</h3>
+        <p><strong>S</strong> — смещение (насколько нужно обойти препятствие)</p>
+        <p><strong>CC</strong> — осевая длина между центрами поворотов</p>
+        <p><strong>E</strong> — растяжка (сколько места утка займёт по прямой)</p>
+        <p><strong>L</strong> — чистая длина патрубка для реза</p>
       </div>
 
       <div class="info-block">
@@ -481,8 +488,9 @@
       <div class="info-block">
         <h3>Пример</h3>
         <p>Смещение 200 мм, угол 45°, вылет полуотвода 120 мм, нахлёст 50 мм.</p>
-        <p><code>L = 200 × 1.41 = 282 мм</code></p>
-        <p><code>L_cut = 282 − 2×120 + 2×50 = 262 мм</code></p>
+        <p><code>CC = 200 × 1.41 = 282 мм</code></p>
+        <p><code>E = 200 / sin(45°) = 283 мм</code></p>
+        <p><code>L = 282 − 2×120 + 2×50 = 262 мм</code></p>
       </div>
     </div>
 
@@ -529,104 +537,134 @@
       }
 
       const axialL = S * K;
+      const extension = S / Math.sin(angle * Math.PI / 180);
       const cutLen = axialL - (elbowLen > 0 ? 2 * elbowLen : 0) + 2 * overlap;
 
       $('res-axial').textContent = Math.round(axialL) + ' мм';
+      $('res-extension').textContent = Math.round(extension) + ' мм';
       $('res-k').textContent = K;
       $('resultCard').style.display = 'block';
 
       if (elbowLen > 0) {
         $('res-cut').textContent = Math.round(cutLen) + ' мм';
         $('res-note').textContent =
-          'Длина реза с учётом вылета (' + elbowLen + ' мм) и нахлёста (' + overlap + ' мм с каждой стороны).';
+          'Длина реза патрубка с учётом вылета (' + elbowLen + ' мм) и нахлёста (' + overlap + ' мм с каждой стороны).';
       } else {
         $('res-cut').textContent = '—';
         $('res-note').textContent =
-          'Укажите длину полуотвода для точного расчёта длины реза. Пока показана осевая длина L = S × K.';
+          'Укажите длину полуотвода для точного расчёта. Пока: осевая = ' + Math.round(axialL) + ' мм, растяжка = ' + Math.round(extension) + ' мм.';
       }
 
-      drawDiagram(axialL, S, D, angle, elbowLen, overlap);
+      drawDiagram(axialL, S, extension, D, angle, elbowLen, overlap);
     }
 
-    // Draw SVG diagram
-    function drawDiagram(L, S, D, angle, elbow, overlap) {
-      const w = 300, h = 160;
-      const pad = 20;
+    // Draw SVG diagram — Lindab-style with labeled dimensions
+    function drawDiagram(CC, S, E, D, angle, elbow, overlap) {
+      const w = 320, h = 200;
+      const pad = 25;
 
-      // Scale
-      const maxDim = Math.max(L, S, D);
-      const scale = (w - 2 * pad - 40) / maxDim;
+      // Scale: fit E horizontally, S vertically
+      const scaleX = (w - 2 * pad - 60) / Math.max(E, 1);
+      const scaleY = (h - 2 * pad - 40) / Math.max(S, 1);
+      const scale = Math.min(scaleX, scaleY);
 
       const sScaled = S * scale;
-      const lScaled = L * scale;
-      const dScaled = D * scale;
+      const eScaled = E * scale;
+      const dScaled = Math.min(D * scale * 0.3, 20);
 
-      const startX = pad + 20;
-      const startY = pad + 20;
+      // Geometry: two horizontal ducts offset by S, connected by angled pipe
+      // The angled pipe runs at `angle` degrees from horizontal
+      const angleRad = angle * Math.PI / 180;
+      const pipeLen = sScaled / Math.sin(angleRad);
 
-      // Duct goes horizontal → elbow up at angle → straight offset pipe → elbow back → horizontal
-      // Simplified side view of offset
-
-      const segLen = lScaled * 0.3;
+      const startX = pad + 30;
+      const y1 = pad + 30;           // top duct Y
+      const y2 = y1 + sScaled;       // bottom duct Y
+      const x1 = startX;             // start of first elbow
+      const x2 = x1 + eScaled;       // end of second elbow
 
       let svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">`;
 
-      // First duct (horizontal)
-      svg += `<line x1="${startX}" y1="${startY + 30}" x2="${startX + segLen}" y2="${startY + 30}" stroke="#555" stroke-width="3"/>`;
+      // Background grid (subtle)
+      for (let gx = pad; gx < w; gx += 30) {
+        svg += `<line x1="${gx}" y1="0" x2="${gx}" y2="${h}" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>`;
+      }
+      for (let gy = pad; gy < h; gy += 30) {
+        svg += `<line x1="0" y1="${gy}" x2="${w}" y2="${gy}" stroke="rgba(255,255,255,0.03)" stroke-width="0.5"/>`;
+      }
 
-      // First elbow (going up-right)
-      const x1 = startX + segLen;
-      const y1 = startY + 30;
-      const x2 = x1 + segLen * Math.cos((90 - angle) * Math.PI / 180) * 0.7;
-      const y2 = y1 - sScaled * 0.5;
-      svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#00d4ff" stroke-width="3"/>`;
+      // Top duct (horizontal)
+      svg += `<line x1="${startX - 20}" y1="${y1}" x2="${x1}" y2="${y1}" stroke="#555" stroke-width="4" stroke-linecap="round"/>`;
+      // Elbow arc top
+      svg += `<path d="M ${x1} ${y1} Q ${x1 + dScaled} ${y1} ${x1 + dScaled * 1.2} ${y1 + dScaled * 0.8}" fill="none" stroke="#00d4ff" stroke-width="3"/>`;
 
-      // Offset pipe
-      const x3 = x2 + segLen;
-      const y3 = y2 - sScaled * 0.5;
-      svg += `<line x1="${x2}" y1="${y2}" x2="${x3}" y2="${y3}" stroke="#00d4ff" stroke-width="3"/>`;
+      // Angled offset pipe
+      svg += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#00d4ff" stroke-width="3" stroke-linecap="round"/>`;
 
-      // Second elbow
-      const x4 = x3 + segLen * Math.cos((90 - angle) * Math.PI / 180) * 0.7;
-      const y4 = y3 + sScaled * 0.5;
-      svg += `<line x1="${x3}" y1="${y3}" x2="${x4}" y2="${y4}" stroke="#00d4ff" stroke-width="3"/>`;
+      // Elbow arc bottom
+      svg += `<path d="M ${x2} ${y2} Q ${x2 - dScaled} ${y2} ${x2 - dScaled * 1.2} ${y2 - dScaled * 0.8}" fill="none" stroke="#00d4ff" stroke-width="3"/>`;
+      // Bottom duct (horizontal)
+      svg += `<line x1="${x2}" y1="${y2}" x2="${x2 + 20}" y2="${y2}" stroke="#555" stroke-width="4" stroke-linecap="round"/>`;
 
-      // Second duct
-      svg += `<line x1="${x4}" y1="${y4}" x2="${x4 + segLen}" y2="${y4}" stroke="#555" stroke-width="3"/>`;
+      // === Dimension lines ===
 
-      // Dimension lines
-      const dimY1 = y1;
-      const dimY2 = y4;
-      const midX = (x2 + x3) / 2;
+      // S (vertical offset) — left side
+      const sX = startX - 15;
+      svg += `<line x1="${sX}" y1="${y1}" x2="${sX}" y2="${y2}" stroke="#ffc107" stroke-width="1" stroke-dasharray="4,3"/>`;
+      svg += `<line x1="${sX - 4}" y1="${y1}" x2="${sX + 4}" y2="${y1}" stroke="#ffc107" stroke-width="1"/>`;
+      svg += `<line x1="${sX - 4}" y1="${y2}" x2="${sX + 4}" y2="${y2}" stroke="#ffc107" stroke-width="1"/>`;
+      svg += `<text x="${sX - 4}" y="${(y1 + y2) / 2}" fill="#ffc107" font-size="10" text-anchor="end" dominant-baseline="middle" font-weight="600">S=${S}</text>`;
 
-      // Offset dimension
-      svg += `<line x1="${x1 + 10}" y1="${dimY1}" x2="${x1 + 10}" y2="${dimY2}" stroke="#ffc107" stroke-width="1" stroke-dasharray="3,3"/>`;
-      svg += `<text x="${x1 + 15}" y="${(dimY1 + dimY2) / 2}" fill="#ffc107" font-size="11" dominant-baseline="middle">${S}</text>`;
+      // E (horizontal extension) — bottom
+      const eY = y2 + 18;
+      svg += `<line x1="${x1}" y1="${eY}" x2="${x2}" y2="${eY}" stroke="#8bc34a" stroke-width="1" stroke-dasharray="4,3"/>`;
+      svg += `<line x1="${x1}" y1="${eY - 4}" x2="${x1}" y2="${eY + 4}" stroke="#8bc34a" stroke-width="1"/>`;
+      svg += `<line x1="${x2}" y1="${eY - 4}" x2="${x2}" y2="${eY + 4}" stroke="#8bc34a" stroke-width="1"/>`;
+      svg += `<text x="${(x1 + x2) / 2}" y="${eY + 12}" fill="#8bc34a" font-size="10" text-anchor="middle" font-weight="600">E=${Math.round(E)}</text>`;
 
-      // L dimension
-      const dimLineY = Math.max(dimY1, dimY2) + 20;
-      svg += `<line x1="${x1}" y1="${dimLineY}" x2="${x4}" y2="${dimLineY}" stroke="#00d4ff" stroke-width="1" stroke-dasharray="3,3"/>`;
-      svg += `<text x="${(x1 + x4) / 2 - 10}" y="${dimLineY + 14}" fill="#00d4ff" font-size="11">L = ${Math.round(L)}</text>`;
+      // CC (center-to-center along pipe) — along the angled line
+      const ccMidX = (x1 + x2) / 2;
+      const ccMidY = (y1 + y2) / 2;
+      const ccAngle = Math.atan2(y2 - y1, x2 - x1) * 180 / Math.PI;
+      svg += `<text x="${ccMidX + 8}" y="${ccMidY - 6}" fill="#00d4ff" font-size="10" font-weight="600" transform="rotate(${ccAngle}, ${ccMidX + 8}, ${ccMidY - 6})">CC=${Math.round(CC)}</text>`;
 
-      // Angle arc
-      svg += `<text x="${x1 - 5}" y="${y1 - 10}" fill="#888" font-size="10">${angle}°</text>`;
+      // Angle indicator
+      svg += `<text x="${x1 + 6}" y="${y1 + 14}" fill="#aaa" font-size="9">${angle}°</text>`;
+
+      // L label (cut length) if available
+      if (elbow > 0) {
+        const cutLen = CC - 2 * elbow + 2 * overlap;
+        svg += `<text x="${ccMidX + 8}" y="${ccMidY + 10}" fill="#ff9800" font-size="9" font-weight="600" transform="rotate(${ccAngle}, ${ccMidX + 8}, ${ccMidY + 10})">L=${Math.round(cutLen)}</text>`;
+      }
 
       svg += '</svg>';
       $('diagram').innerHTML = svg;
     }
 
-    // Fill all-angles table
+    // Fill tables
     function fillTable() {
       const offsets = [50, 100, 150, 200, 250, 300, 400, 500];
+
+      // Quick 45° table with CC and E
+      const quick45 = document.querySelector('#quick45');
+      let q45 = '';
+      offsets.forEach(s => {
+        const cc = Math.round(s * COEFF[45]);
+        const e = Math.round(s / Math.sin(45 * Math.PI / 180));
+        q45 += `<tr style="cursor:pointer" onclick="useQuick(${s})"><td style="font-weight:600;color:#fff">${s}</td><td>${cc}</td><td style="color:#8bc34a;font-weight:600">${e}</td></tr>`;
+      });
+      quick45.innerHTML = q45;
+
+      // All-angles table with CC and E
       const tbody = document.querySelector('#allAnglesTable tbody');
       let html = '';
       offsets.forEach(s => {
         html += `<tr>
           <td style="font-weight:600;color:#fff">${s}</td>
-          <td>${Math.round(s * COEFF[15])}</td>
-          <td>${Math.round(s * COEFF[30])}</td>
-          <td>${Math.round(s * COEFF[45])}</td>
-          <td>${Math.round(s * COEFF[60])}</td>
+          <td>${Math.round(s * COEFF[15])}<br><small style="color:#8bc34a">E=${Math.round(s / Math.sin(15 * Math.PI / 180))}</small></td>
+          <td>${Math.round(s * COEFF[30])}<br><small style="color:#8bc34a">E=${Math.round(s / Math.sin(30 * Math.PI / 180))}</small></td>
+          <td>${Math.round(s * COEFF[45])}<br><small style="color:#8bc34a">E=${Math.round(s / Math.sin(45 * Math.PI / 180))}</small></td>
+          <td>${Math.round(s * COEFF[60])}<br><small style="color:#8bc34a">E=${Math.round(s / Math.sin(60 * Math.PI / 180))}</small></td>
         </tr>`;
       });
       tbody.innerHTML = html;
